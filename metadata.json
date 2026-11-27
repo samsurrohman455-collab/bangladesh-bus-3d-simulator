@@ -1,0 +1,8 @@
+{
+  "name": "Remix Bangladesh Bus 3D",
+  "description": "BANGLADESH BUS 3D SIMULATOR – ULTIMATE EDITION: A 3D Three.js \u0026 WebGL Bangladeshi intercity bus driving simulator with realistic interior cockpit, physics, AI traffic, highways, village roads, bridges, and mobile landscape controls.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

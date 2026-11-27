@@ -1,0 +1,21 @@
+{
+  "name": "bangladesh-bus-3d-simulator",
+  "version": "1.0.0",
+  "description": "BANGLADESH BUS 3D SIMULATOR – ULTIMATE EDITION (Three.js + WebGL + Capacitor/Android)",
+  "main": "app/src/main/assets/www/index.html",
+  "scripts": {
+    "web:serve": "npx serve app/src/main/assets/www -l 8080",
+    "cap:sync": "npx cap sync android",
+    "android:assemble": "gradle :app:assembleDebug",
+    "android:release": "gradle :app:assembleRelease"
+  },
+  "keywords": [
+    "threejs",
+    "webgl",
+    "bus-simulator",
+    "bangladesh",
+    "capacitor",
+    "android"
+  ],
+  "license": "MIT"
+}

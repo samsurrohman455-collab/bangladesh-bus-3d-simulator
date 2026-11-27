@@ -1,0 +1,117 @@
+{
+  "databaseId": "ai-studio-android-banglade-c142206e-2afb-4481-b490-eaaf55b7a424",
+  "collections": {
+    "users": {
+      "path": "/users/{userId}",
+      "description": "Public player profile and multi-category leaderboard summary",
+      "fields": {
+        "userId": "string (owner uid, immutable)",
+        "displayName": "string (1..60)",
+        "companyName": "string (0..60)",
+        "companyColor": "string (0..16)",
+        "friendCode": "string (4..16)",
+        "level": "int (1..500)",
+        "xp": "number (0..1000000000)",
+        "taka": "number (0..10000000000)",
+        "distanceKm": "number (0..10000000)",
+        "safeScore": "number (0..100)",
+        "missionsCompleted": "int (0..100000)",
+        "busesOwned": "int (1..100)",
+        "companyRevenue": "number (0..10000000000)",
+        "convoyCompleted": "int (0..100000)",
+        "friends": "list<string> (<= 50)",
+        "createdAt": "timestamp (immutable)",
+        "updatedAt": "timestamp"
+      }
+    },
+    "cloud_saves": {
+      "path": "/users/{userId}/cloud_saves/{saveId}",
+      "description": "Private full company, fleet, staff, routes, terminals, and progression cloud save",
+      "fields": {
+        "ownerUid": "string (owner uid, immutable)",
+        "payloadJson": "string (2..700000)",
+        "version": "int (1..100)",
+        "createdAt": "timestamp (immutable)",
+        "updatedAt": "timestamp"
+      }
+    },
+    "friend_requests": {
+      "path": "/friend_requests/{reqId}",
+      "description": "Signed-in player friend requests",
+      "fields": {
+        "senderUid": "string (immutable)",
+        "senderName": "string (1..60)",
+        "targetUid": "string (immutable)",
+        "targetName": "string (1..60)",
+        "status": "string (pending|accepted|declined)",
+        "createdAt": "timestamp (immutable)",
+        "updatedAt": "timestamp"
+      }
+    },
+    "rooms": {
+      "path": "/rooms/{roomId}",
+      "description": "Multiplayer and convoy session rooms",
+      "fields": {
+        "roomCode": "string (4..12)",
+        "hostUid": "string (immutable)",
+        "hostName": "string (1..60)",
+        "title": "string (2..60)",
+        "isPrivate": "bool",
+        "mode": "string (free|convoy|competition)",
+        "routeId": "string (1..48)",
+        "leaderUid": "string (1..128)",
+        "convoyProgress": "number (0..100)",
+        "maxPlayers": "int (2..16)",
+        "status": "string (open|active|finished)",
+        "createdAt": "timestamp (immutable)",
+        "updatedAt": "timestamp"
+      }
+    },
+    "room_players": {
+      "path": "/rooms/{roomId}/players/{playerUid}",
+      "description": "Live 3D bus position, telemetry, and convoy progress inside a room",
+      "fields": {
+        "uid": "string",
+        "displayName": "string (1..60)",
+        "companyName": "string (0..60)",
+        "companyColor": "string (1..16)",
+        "busId": "string (1..48)",
+        "x": "number (-20000..20000)",
+        "y": "number (-500..2000)",
+        "z": "number (-100000..100000)",
+        "yaw": "number (-10..10)",
+        "speedKmh": "number (-60..220)",
+        "beamMode": "int (0..2)",
+        "indLeft": "bool",
+        "indRight": "bool",
+        "progressPct": "number (0..100)",
+        "safeRating": "number (0..100)",
+        "updatedAt": "timestamp"
+      }
+    },
+    "room_chat": {
+      "path": "/rooms/{roomId}/chat/{msgId}",
+      "description": "Realtime chat messages inside a multiplayer room",
+      "fields": {
+        "senderUid": "string",
+        "senderName": "string (1..60)",
+        "text": "string (1..200)",
+        "createdAt": "timestamp"
+      }
+    },
+    "competition_entries": {
+      "path": "/competitions/{compId}/entries/{entryUid}",
+      "description": "Player competition scores for online challenges",
+      "fields": {
+        "userId": "string (immutable)",
+        "compId": "string (immutable)",
+        "displayName": "string (1..60)",
+        "companyName": "string (0..60)",
+        "score": "number (0..10000000)",
+        "metricLabel": "string (1..40)",
+        "createdAt": "timestamp (immutable)",
+        "updatedAt": "timestamp"
+      }
+    }
+  }
+}

@@ -1,0 +1,267 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && !id.matches('.*[/\\\\].*');
+    }
+
+    function isStr(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    function isNum(val, minVal, maxVal) {
+      return (val is int || val is float) && val >= minVal && val <= maxVal;
+    }
+
+    function isInt(val, minVal, maxVal) {
+      return val is int && val >= minVal && val <= maxVal;
+    }
+
+    function isTs(val) {
+      return val is timestamp && val <= request.time;
+    }
+
+    function isValidUserProfileFields(data, userId) {
+      return data.keys().hasAll([
+          'userId', 'displayName', 'companyName', 'companyColor', 'friendCode',
+          'level', 'xp', 'taka', 'distanceKm', 'safeScore', 'missionsCompleted',
+          'busesOwned', 'companyRevenue', 'convoyCompleted', 'friends',
+          'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'userId', 'displayName', 'companyName', 'companyColor', 'friendCode',
+          'level', 'xp', 'taka', 'distanceKm', 'safeScore', 'missionsCompleted',
+          'busesOwned', 'companyRevenue', 'convoyCompleted', 'friends',
+          'createdAt', 'updatedAt'
+        ])
+        && data.userId == userId
+        && isStr(data.displayName, 1, 60)
+        && isStr(data.companyName, 0, 60)
+        && isStr(data.companyColor, 0, 16)
+        && isStr(data.friendCode, 4, 16)
+        && isInt(data.level, 1, 500)
+        && isNum(data.xp, 0, 1000000000)
+        && isNum(data.taka, 0, 10000000000)
+        && isNum(data.distanceKm, 0, 10000000)
+        && isNum(data.safeScore, 0, 100)
+        && isInt(data.missionsCompleted, 0, 100000)
+        && isInt(data.busesOwned, 1, 100)
+        && isNum(data.companyRevenue, 0, 10000000000)
+        && isInt(data.convoyCompleted, 0, 100000)
+        && data.friends is list && data.friends.size() <= 50
+        && isTs(data.createdAt)
+        && isTs(data.updatedAt);
+    }
+
+    function isValidUserProfileUpdate(userId) {
+      let d = request.resource.data;
+      let prev = resource.data;
+      return d.userId == prev.userId
+        && d.createdAt == prev.createdAt
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'displayName', 'companyName', 'companyColor', 'friendCode',
+          'level', 'xp', 'taka', 'distanceKm', 'safeScore', 'missionsCompleted',
+          'busesOwned', 'companyRevenue', 'convoyCompleted', 'friends', 'updatedAt'
+        ])
+        && isValidUserProfileFields(d, userId);
+    }
+
+    function isValidCloudSave(userId) {
+      let d = request.resource.data;
+      return d.keys().hasAll(['ownerUid', 'payloadJson', 'version', 'createdAt', 'updatedAt'])
+        && d.keys().hasOnly(['ownerUid', 'payloadJson', 'version', 'createdAt', 'updatedAt'])
+        && d.ownerUid == userId
+        && isStr(d.payloadJson, 2, 700000)
+        && isInt(d.version, 1, 100)
+        && isTs(d.createdAt)
+        && isTs(d.updatedAt);
+    }
+
+    function isValidFriendReqCreate() {
+      let d = request.resource.data;
+      return d.keys().hasAll(['senderUid', 'senderName', 'targetUid', 'targetName', 'status', 'createdAt', 'updatedAt'])
+        && d.keys().hasOnly(['senderUid', 'senderName', 'targetUid', 'targetName', 'status', 'createdAt', 'updatedAt'])
+        && d.senderUid == request.auth.uid
+        && isStr(d.senderName, 1, 60)
+        && isStr(d.targetUid, 1, 128)
+        && d.targetUid != request.auth.uid
+        && isStr(d.targetName, 1, 60)
+        && d.status == 'pending'
+        && isTs(d.createdAt)
+        && isTs(d.updatedAt);
+    }
+
+    function isValidFriendReqUpdate() {
+      let d = request.resource.data;
+      let prev = resource.data;
+      return prev.targetUid == request.auth.uid
+        && d.senderUid == prev.senderUid
+        && d.targetUid == prev.targetUid
+        && d.createdAt == prev.createdAt
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+        && (d.status == 'accepted' || d.status == 'declined')
+        && isTs(d.updatedAt);
+    }
+
+    function isValidRoomFields() {
+      let d = request.resource.data;
+      return d.keys().hasAll([
+          'roomCode', 'hostUid', 'hostName', 'title', 'isPrivate', 'mode',
+          'routeId', 'leaderUid', 'convoyProgress', 'maxPlayers', 'status',
+          'createdAt', 'updatedAt'
+        ])
+        && d.keys().hasOnly([
+          'roomCode', 'hostUid', 'hostName', 'title', 'isPrivate', 'mode',
+          'routeId', 'leaderUid', 'convoyProgress', 'maxPlayers', 'status',
+          'createdAt', 'updatedAt'
+        ])
+        && isStr(d.roomCode, 4, 12)
+        && isStr(d.hostUid, 1, 128)
+        && isStr(d.hostName, 1, 60)
+        && isStr(d.title, 2, 60)
+        && d.isPrivate is bool
+        && (d.mode == 'free' || d.mode == 'convoy' || d.mode == 'competition')
+        && isStr(d.routeId, 1, 48)
+        && isStr(d.leaderUid, 1, 128)
+        && isNum(d.convoyProgress, 0, 100)
+        && isInt(d.maxPlayers, 2, 16)
+        && (d.status == 'open' || d.status == 'active' || d.status == 'finished')
+        && isTs(d.createdAt)
+        && isTs(d.updatedAt);
+    }
+
+    function isValidRoomPlayer(playerUid) {
+      let d = request.resource.data;
+      return d.keys().hasAll([
+          'uid', 'displayName', 'companyName', 'companyColor', 'busId',
+          'x', 'y', 'z', 'yaw', 'speedKmh', 'beamMode', 'indLeft', 'indRight',
+          'progressPct', 'safeRating', 'updatedAt'
+        ])
+        && d.keys().hasOnly([
+          'uid', 'displayName', 'companyName', 'companyColor', 'busId',
+          'x', 'y', 'z', 'yaw', 'speedKmh', 'beamMode', 'indLeft', 'indRight',
+          'progressPct', 'safeRating', 'updatedAt'
+        ])
+        && d.uid == playerUid
+        && isStr(d.displayName, 1, 60)
+        && isStr(d.companyName, 0, 60)
+        && isStr(d.companyColor, 1, 16)
+        && isStr(d.busId, 1, 48)
+        && isNum(d.x, -20000, 20000)
+        && isNum(d.y, -500, 2000)
+        && isNum(d.z, -100000, 100000)
+        && isNum(d.yaw, -10, 10)
+        && isNum(d.speedKmh, -60, 220)
+        && isInt(d.beamMode, 0, 2)
+        && d.indLeft is bool
+        && d.indRight is bool
+        && isNum(d.progressPct, 0, 100)
+        && isNum(d.safeRating, 0, 100)
+        && isTs(d.updatedAt);
+    }
+
+    function isValidChatMsg() {
+      let d = request.resource.data;
+      return d.keys().hasAll(['senderUid', 'senderName', 'text', 'createdAt'])
+        && d.keys().hasOnly(['senderUid', 'senderName', 'text', 'createdAt'])
+        && d.senderUid == request.auth.uid
+        && isStr(d.senderName, 1, 60)
+        && isStr(d.text, 1, 200)
+        && isTs(d.createdAt);
+    }
+
+    function isValidCompEntry(compId, entryUid) {
+      let d = request.resource.data;
+      return d.keys().hasAll([
+          'userId', 'compId', 'displayName', 'companyName', 'score',
+          'metricLabel', 'createdAt', 'updatedAt'
+        ])
+        && d.keys().hasOnly([
+          'userId', 'compId', 'displayName', 'companyName', 'score',
+          'metricLabel', 'createdAt', 'updatedAt'
+        ])
+        && d.userId == entryUid
+        && d.compId == compId
+        && isStr(d.displayName, 1, 60)
+        && isStr(d.companyName, 0, 60)
+        && isNum(d.score, 0, 10000000)
+        && isStr(d.metricLabel, 1, 40)
+        && isTs(d.createdAt)
+        && isTs(d.updatedAt);
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isOwner(userId) && isValidId(userId) && isValidUserProfileFields(request.resource.data, userId);
+      allow update: if isOwner(userId) && isValidId(userId) && isValidUserProfileUpdate(userId);
+      allow delete: if isOwner(userId);
+
+      match /cloud_saves/{saveId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && saveId == 'state' && isValidCloudSave(userId);
+        allow update: if isOwner(userId) && saveId == 'state'
+          && request.resource.data.ownerUid == resource.data.ownerUid
+          && request.resource.data.createdAt == resource.data.createdAt
+          && isValidCloudSave(userId);
+        allow delete: if isOwner(userId) && saveId == 'state';
+      }
+    }
+
+    match /friend_requests/{reqId} {
+      allow get: if isSignedIn() && (resource == null || resource.data.senderUid == request.auth.uid || resource.data.targetUid == request.auth.uid);
+      allow list: if isSignedIn() && (resource.data.senderUid == request.auth.uid || resource.data.targetUid == request.auth.uid);
+      allow create: if isSignedIn() && isValidId(reqId) && isValidFriendReqCreate();
+      allow update: if isSignedIn() && isValidFriendReqUpdate();
+      allow delete: if isSignedIn() && (resource.data.senderUid == request.auth.uid || resource.data.targetUid == request.auth.uid);
+    }
+
+    match /rooms/{roomId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(roomId)
+        && request.resource.data.hostUid == request.auth.uid
+        && isValidRoomFields();
+      allow update: if isSignedIn()
+        && resource.data.hostUid == request.auth.uid
+        && request.resource.data.hostUid == resource.data.hostUid
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'title', 'mode', 'routeId', 'leaderUid', 'convoyProgress', 'status', 'updatedAt'
+        ])
+        && isValidRoomFields();
+      allow delete: if isSignedIn() && resource.data.hostUid == request.auth.uid;
+
+      match /players/{playerUid} {
+        allow read: if isSignedIn();
+        allow create, update: if isOwner(playerUid) && isValidId(roomId) && isValidId(playerUid) && isValidRoomPlayer(playerUid);
+        allow delete: if isOwner(playerUid) || (isSignedIn() && get(/databases/$(database)/documents/rooms/$(roomId)).data.hostUid == request.auth.uid);
+      }
+
+      match /chat/{msgId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() && isValidId(msgId) && isValidChatMsg();
+        allow update: if false;
+        allow delete: if isSignedIn() && resource.data.senderUid == request.auth.uid;
+      }
+    }
+
+    match /competitions/{compId}/entries/{entryUid} {
+      allow read: if isSignedIn();
+      allow create: if isOwner(entryUid) && isValidId(compId) && isValidCompEntry(compId, entryUid);
+      allow update: if isOwner(entryUid) && isValidId(compId)
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.compId == resource.data.compId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && isValidCompEntry(compId, entryUid);
+      allow delete: if isOwner(entryUid);
+    }
+  }
+}

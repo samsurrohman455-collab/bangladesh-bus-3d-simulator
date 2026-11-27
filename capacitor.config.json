@@ -1,0 +1,14 @@
+{
+  "appId": "com.aistudio.bangladeshbus3d.krmxvp",
+  "appName": "Bangladesh Bus 3D",
+  "webDir": "app/src/main/assets/www",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": false,
+    "backgroundColor": "#07140E",
+    "webContentsDebuggingEnabled": false
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}

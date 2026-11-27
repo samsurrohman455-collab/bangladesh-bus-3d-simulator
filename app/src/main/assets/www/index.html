@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Bangladesh Bus 3D Simulator – Ultimate Edition</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <canvas id="game-canvas"></canvas>
+
+  <!-- Toast / Status Banner -->
+  <div id="toast-banner" class="toast-banner hidden" role="status" aria-live="polite"></div>
+
+  <!-- Rotate to Landscape Hint -->
+  <div id="rotate-overlay" class="rotate-overlay hidden">
+    <div class="rotate-card">
+      <div class="rotate-icon">📱↻</div>
+      <h2>Rotate to Landscape</h2>
+      <p>Bangladesh Bus 3D Simulator is designed for wide landscape driving.</p>
+      <button id="btn-dismiss-rotate" class="btn btn-primary">Play Anyway</button>
+    </div>
+  </div>
+
+  <!-- MAIN MENU OVERLAY -->
+  <div id="main-menu" class="menu-overlay">
+    <div class="menu-topbar">
+      <div class="brand-block">
+        <div class="brand-badge">🇧🇩 REAL BANGLADESH • 64 DISTRICTS &amp; 8 DIVISIONS</div>
+        <h1 class="game-title">BANGLADESH BUS 3D SIMULATOR</h1>
+        <p class="game-subtitle">Real WGS-84 Map • N1–N8 Highways • 8 Coach Types • Transport Company • Online Convoy</p>
+      </div>
+      <div class="player-stats-pill">
+        <div class="stat-chip">
+          <span class="stat-label">BALANCE</span>
+          <span id="menu-taka" class="stat-val">৳ 28,000</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-label">DISTANCE</span>
+          <span id="menu-distance" class="stat-val">0.0 km</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-label">TRIPS</span>
+          <span id="menu-trips" class="stat-val">0</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-label">LEVEL</span>
+          <span id="menu-level" class="stat-val">Lv 1</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="menu-body">
+      <div class="menu-nav">
+        <button id="btn-start-game" class="menu-btn menu-btn-primary">
+          <span class="menu-btn-icon">🚌</span>
+          <span class="menu-btn-text">
+            <strong>START GAME</strong>
+            <small>Intercity &amp; Custom Company Routes</small>
+          </span>
+        </button>
+        <button id="btn-free-drive" class="menu-btn">
+          <span class="menu-btn-icon">🛣️</span>
+          <span class="menu-btn-text">
+            <strong>FREE DRIVE</strong>
+            <small>64-District Real Map</small>
+          </span>
+        </button>
+        <button id="btn-real-map" class="menu-btn">
+          <span class="menu-btn-icon">🗺️</span>
+          <span class="menu-btn-text">
+            <strong>BANGLADESH MAP</strong>
+            <small>64 Districts, Landmarks &amp; GPS</small>
+          </span>
+        </button>
+        <button id="btn-company" class="menu-btn">
+          <span class="menu-btn-icon">🏢</span>
+          <span class="menu-btn-text">
+            <strong>COMPANY &amp; FLEET</strong>
+            <small>Fleet, Drivers &amp; Office</small>
+          </span>
+        </button>
+        <button id="btn-terminals" class="menu-btn">
+          <span class="menu-btn-icon">🧭</span>
+          <span class="menu-btn-text">
+            <strong>ROUTES &amp; TERMINALS</strong>
+            <small>Schedules &amp; Hubs</small>
+          </span>
+        </button>
+        <button id="btn-economy" class="menu-btn">
+          <span class="menu-btn-icon">💼</span>
+          <span class="menu-btn-text">
+            <strong>ECONOMY &amp; REWARDS</strong>
+            <small>Loans, Reports &amp; XP</small>
+          </span>
+        </button>
+        <button id="btn-online" class="menu-btn">
+          <span class="menu-btn-icon">🌐</span>
+          <span class="menu-btn-text">
+            <strong>ONLINE &amp; CONVOY</strong>
+            <small id="menu-online-sub">Google Sync &amp; Multiplayer</small>
+          </span>
+        </button>
+        <button id="btn-select-bus" class="menu-btn">
+          <span class="menu-btn-icon">🚍</span>
+          <span class="menu-btn-text">
+            <strong>SELECT BUS</strong>
+            <small>8 Coach Classes</small>
+          </span>
+        </button>
+        <button id="btn-garage" class="menu-btn">
+          <span class="menu-btn-icon">🔧</span>
+          <span class="menu-btn-text">
+            <strong>GARAGE</strong>
+            <small>Paint, Upgrades &amp; Fuel</small>
+          </span>
+        </button>
+        <button id="btn-settings" class="menu-btn">
+          <span class="menu-btn-icon">⚙️</span>
+          <span class="menu-btn-text">
+            <strong>SETTINGS</strong>
+            <small>Graphics, Weather &amp; Audio</small>
+          </span>
+        </button>
+        <button id="btn-exit" class="menu-btn menu-btn-danger">
+          <span class="menu-btn-icon">🚪</span>
+          <span class="menu-btn-text">
+            <strong>EXIT</strong>
+            <small>Close Game Session</small>
+          </span>
+        </button>
+      </div>
+
+      <div class="showroom-info-card">
+        <div class="showroom-badge" id="menu-bus-route">ঢাকা - চট্টগ্রাম</div>
+        <h2 id="menu-bus-name">Green Line Express</h2>
+        <p id="menu-bus-model">Scania K410 Intercity AC Coach</p>
+        <div class="mini-spec-row">
+          <div><span>TOP SPEED</span><strong id="menu-bus-speed">118 km/h</strong></div>
+          <div><span>ENGINE</span><strong id="menu-bus-torque">Tier 1</strong></div>
+          <div><span>FUEL</span><strong id="menu-bus-fuel">100%</strong></div>
+        </div>
+        <div class="controls-hint">
+          <b>WASD / Arrows</b> Drive • <b>Space</b> Handbrake • <b>O</b> Door • <b>C</b> Cam • <b>H</b> Horn • <b>L</b> Lights • <b>Q/E</b> Blinkers
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROUTE SELECTION MODAL -->
+  <div id="route-modal" class="modal-overlay hidden">
+    <div class="modal-panel modal-wide">
+      <div class="modal-header">
+        <div>
+          <h2>ALL-BANGLADESH REAL HIGHWAY MISSIONS (৬৪ জেলা মিশন)</h2>
+          <p class="modal-sub">8 Divisions • 64 Districts • Real N1–N8 Highways, Bridges, Ferries &amp; Passenger Stops</p>
+        </div>
+        <button class="btn-close" data-close="route-modal" aria-label="Close">✕</button>
+      </div>
+
+      <div id="bd-mission-summary" class="bd-mission-summary">
+        <div class="bd-mission-summary-top">
+          <span id="bd-progress-label">🇧🇩 সারা বাংলাদেশ ভ্রমণ: <b>0 / 64 জেলা</b> • <b>0 / 8 বিভাগ</b> • <b>0 মিশন</b></span>
+          <span id="bd-progress-pct" class="bd-progress-pct">0%</span>
+        </div>
+        <div class="bd-progress-track">
+          <div id="bd-progress-fill" class="bd-progress-fill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="custom-mission-box" id="custom-mission-box">
+        <div class="custom-mission-head">
+          <strong>🧭 ৬৪ জেলা কাস্টম বাস্তব মিশন (যেকোনো জেলা → জেলা)</strong>
+          <button type="button" id="btn-random-bd-mission" class="btn btn-secondary custom-mission-rand">🎲 র‍্যান্ডম মিশন</button>
+        </div>
+        <div class="custom-mission-controls">
+          <select id="custom-route-from" class="custom-select" aria-label="Departure Location"></select>
+          <span class="custom-arrow">➔</span>
+          <select id="custom-route-to" class="custom-select" aria-label="Destination Location"></select>
+          <button type="button" id="btn-launch-custom-mission" class="btn btn-primary custom-mission-go">🚀 শুরু করুন</button>
+        </div>
+        <div id="custom-mission-preview" class="custom-mission-preview">সারা বাংলাদেশের যেকোনো ২টি জেলা/স্টপ বেছে নিন</div>
+      </div>
+
+      <div id="route-division-tabs" class="route-filter-strip">
+        <button type="button" class="route-filter-chip active" data-region="all">🇧🇩 সব (All)</button>
+        <button type="button" class="route-filter-chip" data-region="national">⭐ জাতীয় এক্সপ্রেস</button>
+        <button type="button" class="route-filter-chip" data-region="dhaka">ঢাকা</button>
+        <button type="button" class="route-filter-chip" data-region="chattogram">চট্টগ্রাম</button>
+        <button type="button" class="route-filter-chip" data-region="rajshahi">রাজশাহী</button>
+        <button type="button" class="route-filter-chip" data-region="khulna">খুলনা</button>
+        <button type="button" class="route-filter-chip" data-region="barishal">বরিশাল</button>
+        <button type="button" class="route-filter-chip" data-region="sylhet">সিলেট</button>
+        <button type="button" class="route-filter-chip" data-region="rangpur">রংপুর</button>
+        <button type="button" class="route-filter-chip" data-region="mymensingh">ময়মনসিংহ</button>
+        <button type="button" class="route-filter-chip" data-region="uncompleted">🎯 অসম্পূর্ণ</button>
+      </div>
+
+      <div id="route-grid" class="route-grid"></div>
+    </div>
+  </div>
+
+  <!-- SELECT BUS MODAL -->
+  <div id="select-bus-modal" class="modal-overlay hidden">
+    <div class="modal-panel modal-wide">
+      <div class="modal-header">
+        <div>
+          <h2>SELECT BANGLADESHI COACH</h2>
+          <p class="modal-sub">Choose your intercity bus • Balance: <strong id="shop-taka">৳ 25,000</strong></p>
+        </div>
+        <button class="btn-close" data-close="select-bus-modal" aria-label="Close">✕</button>
+      </div>
+      <div id="bus-grid" class="bus-grid"></div>
+    </div>
+  </div>
+
+  <!-- GARAGE MODAL -->
+  <div id="garage-modal" class="modal-overlay hidden">
+    <div class="modal-panel modal-wide">
+      <div class="modal-header">
+        <div>
+          <h2>BUS GARAGE &amp; WORKSHOP</h2>
+          <p class="modal-sub">Customize &amp; service <strong id="garage-bus-title">Green Line Express</strong> • Balance: <strong id="garage-taka">৳ 25,000</strong></p>
+        </div>
+        <button class="btn-close" data-close="garage-modal" aria-label="Close">✕</button>
+      </div>
+      <div class="garage-layout">
+        <div class="garage-section">
+          <h3>🎨 Body Paint Livery</h3>
+          <div id="paint-swatches" class="paint-swatches"></div>
+          <h3 style="margin-top: 12px;">🛠️ Maintenance</h3>
+          <div class="service-row">
+            <button id="btn-repair-bus" class="btn btn-secondary">Repair Hull (<span id="repair-cost">৳ 0</span>)</button>
+            <button id="btn-refuel-bus" class="btn btn-secondary">Refuel Tank (<span id="refuel-cost">৳ 0</span>)</button>
+          </div>
+          <div class="health-fuel-bars">
+            <div class="bar-line">
+              <span>Condition</span>
+              <div class="bar-track"><div id="garage-health-bar" class="bar-fill bar-green" style="width:100%"></div></div>
+              <span id="garage-health-txt">100%</span>
+            </div>
+            <div class="bar-line">
+              <span>Fuel Level</span>
+              <div class="bar-track"><div id="garage-fuel-bar" class="bar-fill bar-amber" style="width:100%"></div></div>
+              <span id="garage-fuel-txt">100%</span>
+            </div>
+          </div>
+        </div>
+        <div class="garage-section">
+          <h3>⚡ Performance Upgrades</h3>
+          <div id="upgrades-list" class="upgrades-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div id="settings-modal" class="modal-overlay hidden">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div>
+          <h2>GAME SETTINGS</h2>
+          <p class="modal-sub">Optimize performance for your device, weather &amp; driving style</p>
+        </div>
+        <button class="btn-close" data-close="settings-modal" aria-label="Close">✕</button>
+      </div>
+      <div class="settings-grid">
+        <div class="setting-row">
+          <label>Graphics Preset <button id="btn-auto-quality" class="btn-inline-tag">⚡ Auto-Recommend</button></label>
+          <div class="segmented" id="set-quality">
+            <button data-val="low">Low</button>
+            <button data-val="medium" class="active">Medium</button>
+            <button data-val="high">High</button>
+            <button data-val="ultra">Ultra</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <label>Shadow Quality</label>
+          <div class="segmented" id="set-shadow">
+            <button data-val="off">Off</button>
+            <button data-val="low">Low</button>
+            <button data-val="medium" class="active">Med</button>
+            <button data-val="high">High</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <label>Reflection Quality</label>
+          <div class="segmented" id="set-reflection">
+            <button data-val="low">Low</button>
+            <button data-val="medium" class="active">Med</button>
+            <button data-val="high">High</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <label>Texture Quality</label>
+          <div class="segmented" id="set-texture">
+            <button data-val="low">Low</button>
+            <button data-val="medium" class="active">Med</button>
+            <button data-val="high">High</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <label>Weather Effects &amp; Particles</label>
+          <div class="segmented" id="set-weather-fx">
+            <button data-val="on" class="active">On</button>
+            <button data-val="off">Off</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <label>Draw Distance (<span id="draw-dist-val">1.0</span>x)</label>
+          <input id="set-draw-dist" type="range" min="0.6" max="1.4" step="0.1" value="1.0" />
+        </div>
+        <div class="setting-row">
+          <label>FPS Limit</label>
+          <div class="segmented" id="set-fps-limit">
+            <button data-val="30">30</button>
+            <button data-val="45">45</button>
+            <button data-val="60" class="active">60</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <label>Transmission Mode</label>
+          <div class="segmented" id="set-transmission">
+            <button data-val="auto" class="active">Automatic</button>
+            <button data-val="manual">Manual</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <label>24h Day-Night Cycle</label>
+          <div class="segmented" id="set-day-mode">
+            <button data-val="auto" class="active">Auto Cycle</button>
+            <button data-val="manual">Manual</button>
+          </div>
+        </div>
+        <div class="setting-row setting-row-col">
+          <label>Time of Day Preset</label>
+          <div class="segmented segmented-wrap" id="set-time">
+            <button data-val="early_morning">Early AM</button>
+            <button data-val="sunrise">Sunrise</button>
+            <button data-val="morning">Morning</button>
+            <button data-val="afternoon" class="active">Afternoon</button>
+            <button data-val="golden_hour">Golden Hr</button>
+            <button data-val="sunset">Sunset</button>
+            <button data-val="evening">Evening</button>
+            <button data-val="night">Midnight</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <label>Dynamic Weather Mode</label>
+          <div class="segmented" id="set-weather-mode">
+            <button data-val="auto" class="active">Auto</button>
+            <button data-val="manual">Manual</button>
+          </div>
+        </div>
+        <div class="setting-row setting-row-col">
+          <label>Weather Condition</label>
+          <div class="segmented segmented-wrap" id="set-weather">
+            <button data-val="sunny" class="active">☀️ Sunny</button>
+            <button data-val="cloudy">⛅ Cloudy</button>
+            <button data-val="light_rain">🌦️ Light Rain</button>
+            <button data-val="heavy_rain">🌧️ Heavy Rain</button>
+            <button data-val="thunderstorm">⛈️ Storm</button>
+            <button data-val="fog">🌫️ Fog</button>
+            <button data-val="winter_mist">❄️ Mist</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <label>Engine &amp; Ambience Audio</label>
+          <div class="segmented" id="set-sound">
+            <button data-val="on" class="active">On</button>
+            <button data-val="off">Off</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <label>Show FPS Counter</label>
+          <div class="segmented" id="set-fps">
+            <button data-val="on" class="active">On</button>
+            <button data-val="off">Off</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <label>Driver Fatigue System</label>
+          <div class="segmented" id="set-fatigue">
+            <button data-val="on" class="active">On</button>
+            <button data-val="off">Off</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <label>Highway Robbery Events</label>
+          <div class="segmented" id="set-robbery">
+            <button data-val="on" class="active">On</button>
+            <button data-val="off">Off</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <label>Steering Sensitivity (<span id="sens-val">1.0</span>x)</label>
+          <input id="set-sensitivity" type="range" min="0.6" max="1.6" step="0.1" value="1.0" />
+        </div>
+        <div class="setting-row">
+          <label>Master Volume (<span id="vol-val">80</span>%)</label>
+          <input id="set-volume" type="range" min="0" max="100" step="5" value="80" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" data-close="settings-modal">Save &amp; Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- IN-GAME HUD -->
+  <div id="hud" class="hud hidden">
+    <div class="hud-top">
+      <!-- Top Left: Pause + GPS Mini-Map + Mission Info -->
+      <div class="hud-top-left">
+        <button id="btn-pause" class="hud-icon-btn" title="Pause" aria-label="Pause Game">⏸</button>
+        <button id="hud-minimap-btn" class="minimap-wrap" title="Open Real Bangladesh GPS Map" aria-label="Open Real Bangladesh GPS Map">
+          <canvas id="gps-minimap" width="112" height="112"></canvas>
+          <span class="minimap-tag">MAP ↗</span>
+        </button>
+        <div id="mission-pill" class="mission-pill">
+          <div class="mission-head-row">
+            <span class="mission-title" id="hud-mode-label">ROUTE MISSION</span>
+            <span id="hud-stop-badge" class="stop-badge hidden">BUS STOP</span>
+          </div>
+          <div class="mission-desc" id="hud-objective">Next: Dhaka Terminal (0m)</div>
+          <div id="hud-turn-signal" class="turn-signal-row">
+            <span id="hud-turn-arrow" class="turn-arrow">⬆</span>
+            <span id="hud-turn-label" class="turn-label">সোজা যান</span>
+            <span id="hud-turn-dist" class="turn-dist"></span>
+          </div>
+          <div id="hud-gps-coords" class="hud-gps-coords">23.778°N 90.402°E • Dhaka</div>
+          <div class="mission-sub-row">
+            <span id="hud-route-dist">Dist: 0.0 km</span>
+            <span id="hud-speed-limit">LIMIT 80</span>
+          </div>
+          <div class="mission-prog-track">
+            <div id="hud-mission-progress" class="mission-prog-fill" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Center: Signals, Gear, Passengers, Fuel, Condition, Engine Temp, Tire, Oil, Clean, Fatigue, Economy -->
+      <div class="hud-top-center">
+        <div class="status-pill">
+          <span id="hud-ind-left" class="ind-arrow">◀</span>
+          <span id="hud-gear-badge" class="gear-pill">D1</span>
+          <span id="hud-ind-right" class="ind-arrow">▶</span>
+          <span class="divider">|</span>
+          <span class="hud-mini-stat">👥 <b id="hud-pax">0/28</b></span>
+          <span class="divider">|</span>
+          <span class="hud-mini-stat">🎟️ <b id="hud-ticket-income">৳0</b></span>
+          <span class="divider">|</span>
+          <span class="hud-mini-stat">⛽ <b id="hud-fuel-pct">100%</b></span>
+          <span class="divider">|</span>
+          <span class="hud-mini-stat">🛡️ <b id="hud-health-pct">100%</b></span>
+          <span class="divider">|</span>
+          <span class="hud-mini-stat taka-text">৳ <b id="hud-taka">25,000</b></span>
+          <span id="hud-fps-wrap" class="hud-fps-wrap">• <b id="hud-fps">60</b></span>
+        </div>
+        <div class="status-pill telemetry-pill">
+          <span class="hud-mini-stat">🌡️ <b id="hud-temp">82°C</b></span>
+          <span class="divider">|</span>
+          <span class="hud-mini-stat">🛞 <b id="hud-tire-pct">100%</b></span>
+          <span class="divider">|</span>
+          <span class="hud-mini-stat">🛢️ <b id="hud-oil-pct">100%</b></span>
+          <span class="divider">|</span>
+          <span class="hud-mini-stat">🧽 <b id="hud-clean-pct">100%</b></span>
+          <span class="divider">|</span>
+          <span class="hud-mini-stat">😴 <b id="hud-fatigue-pct">0%</b></span>
+          <span class="divider">|</span>
+          <span class="hud-mini-stat"><b id="hud-clock-weather">14:00 • ☀️ Sunny</b></span>
+        </div>
+      </div>
+
+      <!-- Top Right: Door, Hazard, Nav Service, Status/Ledger, Emergency, Weather, Indicators, Lights, Camera, Horn -->
+      <div class="hud-top-right-wrap">
+        <div class="hud-top-right">
+          <button id="btn-door" class="hud-pill-btn" title="Open/Close Passenger Door">🚪 DOOR</button>
+          <button id="btn-weather" class="hud-pill-btn" title="Toggle Weather">☀️</button>
+          <button id="btn-ind-left" class="hud-pill-btn" title="Left Indicator">◀</button>
+          <button id="btn-ind-right" class="hud-pill-btn" title="Right Indicator">▶</button>
+          <button id="btn-lights" class="hud-pill-btn" title="Headlights">💡</button>
+          <button id="btn-cam" class="hud-pill-btn" title="Switch Camera (C)">🎥 CHASE</button>
+          <button id="btn-cam-tray" class="hud-pill-btn cam-tray-toggle" title="View Cameras (V)">📷 VIEW ▾</button>
+          <button id="btn-horn" class="hud-pill-btn hud-horn-btn" title="Air Horn">📯</button>
+        </div>
+        <div class="hud-top-right">
+          <button id="btn-hazard" class="hud-pill-btn" title="Hazard Warning Lights">⚠️ HAZ</button>
+          <button id="btn-nav-service" class="hud-pill-btn" title="Navigate Nearest Service Station">🧭 NAV</button>
+          <button id="btn-ledger" class="hud-pill-btn" title="Condition, Insurance &amp; Ledger">📊 STATUS</button>
+          <button id="btn-emergency" class="hud-pill-btn hud-sos-btn" title="Roadside Emergency">🆘 SOS</button>
+        </div>
+        <div id="cam-view-tray" class="cam-view-tray hidden" role="menu" aria-label="View Cameras">
+          <div class="cam-tray-head">
+            <span>📷 View Cameras • ভিউ ক্যামেরা</span>
+            <button id="btn-cam-reset" class="cam-reset-btn" type="button" title="Reset Camera Angle">↺ Reset</button>
+          </div>
+          <div class="cam-tray-grid">
+            <button class="cam-chip-btn active" type="button" data-cam="0"><span>🎥 CHASE</span><small>1 • পিছনের ভিউ</small></button>
+            <button class="cam-chip-btn" type="button" data-cam="1"><span>🪪 COCKPIT</span><small>2 • ড্রাইভার সিট</small></button>
+            <button class="cam-chip-btn" type="button" data-cam="2"><span>🛣️ FOLLOW</span><small>3 • দূরের ভিউ</small></button>
+            <button class="cam-chip-btn" type="button" data-cam="3"><span>⚡ BUMPER</span><small>4 • বাম্পার ভিউ</small></button>
+            <button class="cam-chip-btn" type="button" data-cam="4"><span>💺 CABIN</span><small>5 • যাত্রী কেবিন</small></button>
+            <button class="cam-chip-btn" type="button" data-cam="5"><span>🚪 DOOR</span><small>6 • দরজা ও চাকা</small></button>
+            <button class="cam-chip-btn" type="button" data-cam="6"><span>🌤️ ROOF</span><small>7 • ছাদের ভিউ</small></button>
+            <button class="cam-chip-btn" type="button" data-cam="7"><span>🪞 REAR</span><small>8 • রিভার্স ভিউ</small></button>
+            <button class="cam-chip-btn" type="button" data-cam="8"><span>🔄 360°</span><small>9 • ড্রোন অরবিট</small></button>
+          </div>
+          <div class="cam-tray-tip">Drag screen to look / 360° orbit • Double-tap to reset</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center-Top Alerts (Traffic Warnings / Police / Boarding / Toll / Fuel / Service Action) -->
+    <div id="hud-alert" class="hud-alert hidden"></div>
+    <div id="hud-online-pill" class="convoy-hud-pill hidden">
+      <span id="hud-online-text">🌐 Room</span>
+      <button id="btn-hud-online">💬 ROOM / CHAT</button>
+    </div>
+    <button id="btn-enter-service" class="service-context-btn hidden">⛽ OPEN SERVICE STATION</button>
+
+    <!-- Compact Passenger Boarding Strip (tucked on left edge, never blocks windshield) -->
+    <div id="pax-board-card" class="pax-board-card hidden" role="status" aria-live="polite">
+      <div class="pax-card-head">
+        <div class="pax-card-info">
+          <div class="pax-card-title" id="pax-stop-title">🚌 ঢাকা টার্মিনাল</div>
+          <div class="pax-card-sub" id="pax-stop-sub">থামুন ও দরজা খুলুন</div>
+        </div>
+        <button id="btn-pax-door" class="pax-door-btn" type="button" title="দরজা খুলুন/বন্ধ করুন">🚪 খুলুন</button>
+      </div>
+      <div class="pax-card-stats">
+        <span>🧍<b id="pax-wait-cnt">0</b></span>
+        <span>👋<b id="pax-alight-cnt">0</b></span>
+        <span>💺<b id="pax-seat-cnt">0/28</b></span>
+        <span class="pax-fare-chip">🎟️<b id="pax-fare-val">৳180</b></span>
+      </div>
+      <div class="pax-prog-track"><div id="pax-seat-bar" class="pax-prog-fill" style="width:0%"></div></div>
+    </div>
+
+    <!-- Bottom Controls & Gauges -->
+    <div class="hud-bottom">
+      <div class="controls-left">
+        <button id="btn-steer-left" class="steer-btn" aria-label="Steer Left">
+          <span>◀</span>
+          <small>LEFT</small>
+        </button>
+        <button id="btn-steer-right" class="steer-btn" aria-label="Steer Right">
+          <span>▶</span>
+          <small>RIGHT</small>
+        </button>
+      </div>
+
+      <div class="dashboard-cluster">
+        <div class="gauge-dial">
+          <svg viewBox="0 0 120 82" class="gauge-svg">
+            <path d="M 16 70 A 46 46 0 1 1 104 70" class="gauge-bg-arc" />
+            <path id="rpm-arc" d="M 16 70 A 46 46 0 1 1 104 70" class="gauge-rpm-arc" />
+            <line id="rpm-needle" x1="60" y1="62" x2="24" y2="62" class="gauge-needle-rpm" />
+            <circle cx="60" cy="62" r="5" class="gauge-hub" />
+          </svg>
+          <div class="gauge-readout">
+            <span id="hud-rpm">0.8</span>
+            <small>x1000 RPM</small>
+          </div>
+        </div>
+
+        <div class="speed-center">
+          <div id="hud-speed" class="speed-number">0</div>
+          <div class="speed-unit">KM/H</div>
+          <div class="fuel-mini-bar">
+            <span>E</span>
+            <div class="fuel-track"><div id="hud-fuel-bar" class="fuel-fill" style="width:100%"></div></div>
+            <span>F</span>
+          </div>
+        </div>
+
+        <div class="gear-selector-mini">
+          <button id="btn-gear-up" class="gear-step-btn" aria-label="Gear Up">▲</button>
+          <div id="hud-gear-big" class="gear-big">D</div>
+          <button id="btn-gear-down" class="gear-step-btn" aria-label="Gear Down">▼</button>
+          <div id="hud-trans-mode" class="trans-tag">AUTO</div>
+        </div>
+      </div>
+
+      <div class="controls-right">
+        <div class="right-aux">
+          <button id="btn-handbrake" class="hb-btn" aria-label="Handbrake">
+            <span>P</span>
+            <small>HANDBRAKE</small>
+          </button>
+          <div class="right-aux-row">
+            <button id="btn-trans-toggle" class="aux-btn" aria-label="Toggle Auto/Manual">
+              <span>⚙️</span>
+              <small id="btn-trans-label">AUTO</small>
+            </button>
+            <button id="btn-power-mode" class="aux-btn pwr-btn" aria-label="Toggle Engine Power Mode">
+              <span>⚡</span>
+              <small id="btn-power-label">ECO</small>
+            </button>
+          </div>
+        </div>
+        <button id="btn-brake" class="pedal-btn pedal-brake" aria-label="Brake or Reverse">
+          <span>BRAKE</span>
+          <small>REV</small>
+        </button>
+        <button id="btn-gas" class="pedal-btn pedal-gas" aria-label="Accelerator">
+          <span>GAS</span>
+          <small>ACCEL</small>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MISSION COMPLETE MODAL -->
+  <div id="mission-complete-modal" class="modal-overlay hidden">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div>
+          <h2 id="mc-title">ROUTE COMPLETED!</h2>
+          <p class="modal-sub" id="mc-subtitle">Dhaka → Mymensingh Express Service</p>
+        </div>
+      </div>
+      <div class="ledger-table">
+        <div class="ledger-row"><span>Passengers Carried</span><strong id="mc-pax">0</strong></div>
+        <div class="ledger-row"><span>Ticket Income</span><strong class="pos-val" id="mc-tickets">+৳ 0</strong></div>
+        <div class="ledger-row"><span>Mission Bonus</span><strong class="pos-val" id="mc-reward">+৳ 0</strong></div>
+        <div class="ledger-row"><span>Fuel Expenses</span><strong class="neg-val" id="mc-fuel">-৳ 0</strong></div>
+        <div class="ledger-row"><span>Bridge Tolls</span><strong class="neg-val" id="mc-tolls">-৳ 0</strong></div>
+        <div class="ledger-row"><span>Traffic Police Fines</span><strong class="neg-val" id="mc-fines">-৳ 0</strong></div>
+        <div class="ledger-row ledger-total"><span>NET TRIP PROFIT</span><strong id="mc-net">৳ 0</strong></div>
+      </div>
+      <div class="pause-actions" style="flex-direction:row; justify-content:flex-end; gap:8px;">
+        <button id="mc-btn-freedrive" class="btn btn-secondary">Free Drive</button>
+        <button id="mc-btn-menu" class="btn btn-secondary">Main Menu</button>
+        <button id="mc-btn-next" class="btn btn-primary">Next Route ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAUSE MODAL -->
+  <div id="pause-modal" class="modal-overlay hidden">
+    <div class="modal-panel modal-compact">
+      <h2>GAME PAUSED</h2>
+      <p class="modal-sub" id="pause-summary">Dhaka Corridor</p>
+      <div class="pause-actions">
+        <button id="btn-resume" class="btn btn-primary">▶ Resume Driving</button>
+        <button id="btn-restart" class="btn btn-secondary">🔄 Reset Bus on Road</button>
+        <button id="btn-quick-service" class="btn btn-secondary">⛽ Quick Refuel &amp; Repair (৳ 500)</button>
+        <button id="btn-pause-settings" class="btn btn-secondary">⚙️ Settings</button>
+        <button id="btn-to-menu" class="btn btn-danger">🏠 Main Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXIT CONFIRM MODAL -->
+  <div id="exit-modal" class="modal-overlay hidden">
+    <div class="modal-panel modal-compact">
+      <h2>EXIT SIMULATOR?</h2>
+      <p class="modal-sub">Your Taka balance, unlocked buses, and garage upgrades are saved automatically.</p>
+      <div class="pause-actions">
+        <button id="btn-confirm-exit" class="btn btn-danger">Exit Game</button>
+        <button id="btn-cancel-exit" class="btn btn-secondary">Stay in Game</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 3: PETROL & DIESEL FUEL STATION MODAL -->
+  <div id="fuel-modal" class="modal-overlay hidden">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div>
+          <h2 id="fuel-station-title">PETROL &amp; DIESEL PUMP</h2>
+          <p class="modal-sub">Attendant ready • Diesel: <b>৳ 105/unit</b> • Petrol: <b>৳ 125/unit</b></p>
+        </div>
+        <button class="btn-close" data-close="fuel-modal" aria-label="Close">✕</button>
+      </div>
+      <div class="health-fuel-bars" style="margin-bottom:12px;">
+        <div class="bar-line">
+          <span>Fuel Tank</span>
+          <div class="bar-track"><div id="fuel-modal-bar" class="bar-fill bar-amber" style="width:100%"></div></div>
+          <span id="fuel-modal-pct">100%</span>
+        </div>
+        <div id="fuel-progress-wrap" class="bar-line hidden">
+          <span>Pump Flow</span>
+          <div class="bar-track"><div id="fuel-anim-bar" class="bar-fill bar-green" style="width:0%"></div></div>
+          <span>Pumping</span>
+        </div>
+      </div>
+      <div class="setting-row" style="margin-bottom:10px;">
+        <label>Select Dispenser Type</label>
+        <div class="segmented" id="fuel-type-seg">
+          <button data-val="diesel" class="active">Diesel (৳105)</button>
+          <button data-val="petrol">Petrol (৳125)</button>
+        </div>
+      </div>
+      <div class="service-row" style="justify-content:space-between;">
+        <button id="btn-refuel-25" class="btn btn-secondary">+25% (<span id="fuel-cost-25">৳0</span>)</button>
+        <button id="btn-refuel-50" class="btn btn-secondary">+50% (<span id="fuel-cost-50">৳0</span>)</button>
+        <button id="btn-refuel-full" class="btn btn-primary">FILL 100% (<span id="fuel-cost-full">৳0</span>)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 3: INTERACTIVE VEHICLE REPAIR GARAGE MODAL -->
+  <div id="service-garage-modal" class="modal-overlay hidden">
+    <div class="modal-panel modal-wide">
+      <div class="modal-header">
+        <div>
+          <h2 id="repair-station-title">INTERACTIVE REPAIR WORKSHOP</h2>
+          <p class="modal-sub">Balance: <strong id="repair-taka">৳ 25,000</strong> • Overall Health: <strong id="repair-health">100%</strong></p>
+        </div>
+        <button class="btn-close" data-close="service-garage-modal" aria-label="Close">✕</button>
+      </div>
+      <div class="setting-row" style="margin-bottom:8px;">
+        <label>Apply 70% Comprehensive Insurance Coverage (<span id="repair-ins-status">Active</span>)</label>
+        <div class="segmented" id="repair-use-insurance">
+          <button data-val="yes" class="active">Use Claim (-70%)</button>
+          <button data-val="no">Pay Cash</button>
+        </div>
+      </div>
+      <div id="repair-progress-wrap" class="bar-line hidden" style="margin-bottom:8px;">
+        <span>Mechanic Bay</span>
+        <div class="bar-track"><div id="repair-anim-bar" class="bar-fill bar-green" style="width:0%"></div></div>
+        <span id="repair-anim-label">Working...</span>
+      </div>
+      <div id="repair-services-grid" class="repair-grid"></div>
+    </div>
+  </div>
+
+  <!-- PHASE 3: BUS WASHING STATION MODAL -->
+  <div id="wash-modal" class="modal-overlay hidden">
+    <div class="modal-panel modal-compact">
+      <div class="modal-header">
+        <div>
+          <h2 id="wash-station-title">FOAM &amp; WATER BUS WASH</h2>
+          <p class="modal-sub">High-pressure water jets &amp; soap wax</p>
+        </div>
+        <button class="btn-close" data-close="wash-modal" aria-label="Close">✕</button>
+      </div>
+      <div class="health-fuel-bars" style="margin-bottom:12px;">
+        <div class="bar-line">
+          <span>Cleanliness</span>
+          <div class="bar-track"><div id="wash-clean-bar" class="bar-fill bar-green" style="width:100%"></div></div>
+          <span id="wash-clean-txt">100%</span>
+        </div>
+        <div id="wash-anim-wrap" class="bar-line hidden">
+          <span>Spray Cycle</span>
+          <div class="bar-track"><div id="wash-anim-bar" class="bar-fill bar-amber" style="width:0%"></div></div>
+          <span>Spraying</span>
+        </div>
+      </div>
+      <button id="btn-start-wash" class="btn btn-primary" style="width:100%;">🚿 START BUS WASH (৳ 250)</button>
+    </div>
+  </div>
+
+  <!-- PHASE 3: HIGHWAY REST STOP COMPLEX MODAL -->
+  <div id="rest-modal" class="modal-overlay hidden">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div>
+          <h2 id="rest-station-title">HIGHWAY REST STOP OASIS</h2>
+          <p class="modal-sub">Restaurant • Tea Stall • Toilets • Parking • Driver Rest Bunk</p>
+        </div>
+        <button class="btn-close" data-close="rest-modal" aria-label="Close">✕</button>
+      </div>
+      <div class="bar-line" style="margin-bottom:12px;">
+        <span>Driver Fatigue</span>
+        <div class="bar-track"><div id="rest-fatigue-bar" class="bar-fill bar-amber" style="width:0%"></div></div>
+        <span id="rest-fatigue-txt">0%</span>
+      </div>
+      <div class="pause-actions" style="margin-top:0;">
+        <button id="btn-rest-tea" class="btn btn-secondary">☕ Cha Stall &amp; Toilet Break (-35% Fatigue • ৳ 80)</button>
+        <button id="btn-rest-meal" class="btn btn-secondary">🍛 Highway Restaurant Meal (-65% Fatigue • ৳ 220)</button>
+        <button id="btn-rest-sleep" class="btn btn-primary">🛏️ Driver Bunk Rest (Full Recovery • ৳ 350)</button>
+      </div>
+      <p class="modal-sub" style="margin-top:10px;">Adjacent bays inside complex: drive slightly forward for Petrol/Diesel Pump, or backward for Repair Garage &amp; Bus Wash!</p>
+    </div>
+  </div>
+
+  <!-- PHASE 3: HIGHWAY ROBBERY ENCOUNTER MODAL -->
+  <div id="robbery-modal" class="modal-overlay hidden">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div>
+          <h2>⚠️ HIGHWAY ROADBLOCK ALERT</h2>
+          <p class="modal-sub" id="robbery-zone-name">Isolated Highway Sector — Non-graphic Encounter</p>
+        </div>
+      </div>
+      <p class="modal-sub" style="margin-bottom:12px; color:#fde68a;">Barrels are blocking the left lane and suspicious figures are signaling your coach to stop. Choose your driver response:</p>
+      <div class="pause-actions" style="margin-top:0;">
+        <button id="btn-rob-police" class="btn btn-primary">🚓 Call Highway Police Assistance (Clears Road • +৳ 2,500 Reward)</button>
+        <button id="btn-rob-bypass" class="btn btn-secondary">🔀 Take Alternate Rural Bypass (+৳ 900 Safe Route)</button>
+        <button id="btn-rob-escape" class="btn btn-secondary">💨 Attempt Speed Escape (Dodge Barrels • +৳ 1,200 Risk)</button>
+        <button id="btn-rob-pay" class="btn btn-danger">💵 Stop &amp; Pay Safe Passage (৳ 800)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 3: EMERGENCY ASSISTANCE & RECOVERY MODAL -->
+  <div id="emergency-modal" class="modal-overlay hidden">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div>
+          <h2>🆘 ROADSIDE EMERGENCY &amp; RECOVERY</h2>
+          <p class="modal-sub" id="emergency-diag-txt">Breakdown diagnostics &amp; roadside rescue</p>
+        </div>
+        <button class="btn-close" data-close="emergency-modal" aria-label="Close">✕</button>
+      </div>
+      <div class="pause-actions" style="margin-top:0;">
+        <button id="btn-emg-hazard" class="btn btn-secondary">⚠️ Toggle Hazard Warning Lights</button>
+        <button id="btn-emg-kit" class="btn btn-primary">🧰 Use Emergency Repair Kit (Fix Puncture &amp; Cool Engine • ৳ 450)</button>
+        <button id="btn-emg-tow" class="btn btn-secondary">🚛 Call Tow Truck to Nearest Service Garage (৳ 900)</button>
+        <button id="btn-emg-evac" class="btn btn-danger">🚪 Emergency Passenger Evacuation (Open Doors &amp; Safety Stop)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 3: VEHICLE CONDITION, PARTS, INSURANCE & ECONOMY LEDGER MODAL -->
+  <div id="ledger-modal" class="modal-overlay hidden">
+    <div class="modal-panel modal-wide">
+      <div class="modal-header">
+        <div>
+          <h2>📊 BUS DIAGNOSTICS, INSURANCE &amp; ECONOMY</h2>
+          <p class="modal-sub">12-Part Damage Status • Fluids &amp; Tires • Accident Reports • Income &amp; Expenses</p>
+        </div>
+        <button class="btn-close" data-close="ledger-modal" aria-label="Close">✕</button>
+      </div>
+      <div class="garage-layout">
+        <div class="garage-section">
+          <h3>🔧 12-Part Condition &amp; Mechanicals</h3>
+          <div id="ledger-parts-grid" class="parts-mini-grid"></div>
+          <div id="ledger-mech-summary" class="modal-sub" style="margin-top:8px;"></div>
+          <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+            <span id="ledger-ins-txt" style="font-size:11px; color:#a7f3d0;">Insurance: Active (70% Coverage)</span>
+            <button id="btn-toggle-insurance" class="btn btn-secondary" style="padding:5px 10px; font-size:11px;">Toggle Policy</button>
+          </div>
+        </div>
+        <div class="garage-section">
+          <h3>🧾 Accident Reports &amp; Economy History</h3>
+          <div id="ledger-history-list" class="history-scroll-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 5: COMPANY, FLEET & STAFF MODAL -->
+  <div id="company-modal" class="modal-overlay hidden">
+    <div class="modal-panel modal-wide">
+      <div class="modal-header">
+        <div>
+          <h2 id="company-modal-title">🏢 PERSONAL BUS COMPANY</h2>
+          <p class="modal-sub" id="company-modal-sub">Manage company identity, multi-bus fleet, and hired drivers/staff</p>
+        </div>
+        <button class="btn-close" data-close="company-modal" aria-label="Close">✕</button>
+      </div>
+      <div class="tab-strip" id="company-tabs">
+        <button class="tab-btn active" data-tab="profile">🏢 Company HQ</button>
+        <button class="tab-btn" data-tab="fleet">🚍 My Fleet</button>
+        <button class="tab-btn" data-tab="buy">🛒 Buy Coaches (8)</button>
+        <button class="tab-btn" data-tab="staff">👷 Drivers &amp; Staff</button>
+      </div>
+      <div id="company-tab-body"></div>
+    </div>
+  </div>
+
+  <!-- PHASE 5: ROUTE SCHEDULES & TERMINAL MANAGEMENT MODAL -->
+  <div id="terminals-modal" class="modal-overlay hidden">
+    <div class="modal-panel modal-wide">
+      <div class="modal-header">
+        <div>
+          <h2>🧭 ROUTE SCHEDULES &amp; BUS TERMINALS</h2>
+          <p class="modal-sub">Design custom intercity routes &amp; upgrade your owned Bangladesh bus terminals</p>
+        </div>
+        <button class="btn-close" data-close="terminals-modal" aria-label="Close">✕</button>
+      </div>
+      <div class="tab-strip" id="terminals-tabs">
+        <button class="tab-btn active" data-tab="routes">🗓️ Route Designer</button>
+        <button class="tab-btn" data-tab="terminals">🏛️ Bus Terminals</button>
+      </div>
+      <div id="terminals-tab-body"></div>
+    </div>
+  </div>
+
+  <!-- PHASE 5: ECONOMY, LOANS, DAILY REPORTS & PROGRESSION MODAL -->
+  <div id="economy-modal" class="modal-overlay hidden">
+    <div class="modal-panel modal-wide">
+      <div class="modal-header">
+        <div>
+          <h2>💼 TRANSPORT ECONOMY &amp; PROGRESSION</h2>
+          <p class="modal-sub" id="economy-modal-sub">Daily revenue statements, bank loans, XP level, achievements &amp; daily rewards</p>
+        </div>
+        <button class="btn-close" data-close="economy-modal" aria-label="Close">✕</button>
+      </div>
+      <div class="tab-strip" id="economy-tabs">
+        <button class="tab-btn active" data-tab="reports">📈 Daily Financial Reports</button>
+        <button class="tab-btn" data-tab="loans">🏦 Business Loans</button>
+        <button class="tab-btn" data-tab="progress">🏆 XP, Achievements &amp; Rewards</button>
+      </div>
+      <div id="economy-tab-body"></div>
+    </div>
+  </div>
+
+  <!-- PHASE 5: MULTIPLAYER, CONVOY, FRIENDS, COMPETITIONS & CLOUD MODAL -->
+  <div id="online-modal" class="modal-overlay hidden">
+    <div class="modal-panel modal-wide">
+      <div class="modal-header">
+        <div>
+          <h2>🌐 ONLINE MULTIPLAYER, CONVOY &amp; CLOUD</h2>
+          <p class="modal-sub" id="online-auth-status">Offline Local Mode • Sign in with Google to sync &amp; drive online</p>
+        </div>
+        <button class="btn-close" data-close="online-modal" aria-label="Close">✕</button>
+      </div>
+      <div class="tab-strip" id="online-tabs">
+        <button class="tab-btn active" data-tab="account">☁️ Account &amp; Cloud</button>
+        <button class="tab-btn" data-tab="rooms">🚛 Rooms &amp; Convoy</button>
+        <button class="tab-btn" data-tab="friends">🤝 Friends</button>
+        <button class="tab-btn" data-tab="competitions">🏁 Competitions</button>
+        <button class="tab-btn" data-tab="leaderboard">🥇 Leaderboards</button>
+      </div>
+      <div id="online-tab-body"></div>
+    </div>
+  </div>
+
+  <!-- REAL BANGLADESH MAP, SEARCH & GPS NAVIGATOR MODAL -->
+  <div id="bd-map-modal" class="modal-overlay hidden">
+    <div class="modal-panel modal-wide bd-map-modal-panel">
+      <div class="modal-header">
+        <div>
+          <h2>🗺️ REAL BANGLADESH MAP &amp; GPS NAVIGATOR</h2>
+          <p class="modal-sub" id="bd-map-sub">8 Divisions • 64 Districts • Real WGS-84 Coordinates &amp; Highways</p>
+        </div>
+        <button class="btn-close" data-close="bd-map-modal" aria-label="Close">✕</button>
+      </div>
+      <div class="tab-strip" id="bd-map-tabs">
+        <button class="tab-btn active" data-tab="map">🗺️ Interactive Map &amp; Search</button>
+        <button class="tab-btn" data-tab="offline">📥 Offline Regions &amp; Sources</button>
+      </div>
+      <div id="bd-map-body"></div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="vendor/three.min.js"></script>
+  <script src="js/bdGeoData.js"></script>
+  <script src="js/mapTiles.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/textures.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/busModel.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/environment.js"></script>
+  <script src="js/passengers.js"></script>
+  <script src="js/traffic.js"></script>
+  <script src="js/police.js"></script>
+  <script src="js/physics.js"></script>
+  <script src="js/mechanics.js"></script>
+  <script src="js/events.js"></script>
+  <script src="js/company.js"></script>
+  <script src="js/multiplayer.js"></script>
+  <script src="js/phase5ui.js"></script>
+  <script src="js/mapNavigatorUI.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
